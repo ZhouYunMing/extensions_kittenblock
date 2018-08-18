@@ -4,6 +4,8 @@ Here are all the existing extensions for kittenblock, you may modify or use in a
 
 We will release a devtool very soon to create a scaffold of your own extension, it should also compatible with scratch3 or any scratch3 based tools.
 
+Please read the develop guide first [Kittenblock插件开发指南](http://learn.kittenbot.cn/zh_CN/latest/kittenblock/%E6%8F%92%E4%BB%B6%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97.html)
+
 ## How to load extension
 
 1. Please get kittenblock V1.77 or above, you may find the link here [http://kittenbot.cn/#/software](http://kittenbot.cn/#/software). *Sorry for that our English site is still under constructing:)*
