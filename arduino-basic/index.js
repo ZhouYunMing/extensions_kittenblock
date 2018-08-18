@@ -254,9 +254,9 @@ class ArduinoExtension {
                             menu: 'digiPin'
                         },
                         VALUE: {
-                            type: ArgumentType.STRING,
+                            type: ArgumentType.NUMBER,
                             menu: 'onoff',
-                            defaultValue: 0
+                            defaultValue: '0'
                         }
                     },
                     func: 'led'
@@ -400,9 +400,9 @@ class ArduinoExtension {
                 }
             ],
             menus: {
-                pinMode: [{text:'INPUT', value: 0}, {text: 'OUTPUT', value: 1}, {text: 'INPUT_PULLUP', value: 2}],
-                level: [{text: 'HIGH', value: 1}, {text: 'LOW', value: 0}],
-                onoff: [{text: 'ON', value: 0}, {text: 'OFF', value: 1}],
+                pinMode: [{text:'INPUT', value: '0'}, {text: 'OUTPUT', value: '1'}, {text: 'INPUT_PULLUP', value: '2'}],
+                level: [{text: 'HIGH', value: '1'}, {text: 'LOW', value: '0'}],
+                onoff: [{text: 'ON', value: '0'}, {text: 'OFF', value: '1'}],
                 digiPin: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13',
                     'A0', 'A1', 'A2', 'A3', 'A4', 'A5'],
                 analogPin: ['A0', 'A1', 'A2', 'A3', 'A4', 'A5'],
@@ -423,17 +423,11 @@ class ArduinoExtension {
     }
 
     digitalWrite (args){
-        if (isNaN(args.VALUE)){
-            args.VALUE = levelMap[args.VALUE];
-        }
         let cmd = `M2 ${args.PIN} ${args.VALUE}\r\n`;
         this.write(cmd);
     }
 
     led (args){
-        if (isNaN(args.VALUE)){
-            args.VALUE = onoffMap[args.VALUE];
-        }
         let cmd = `M2 ${args.PIN} ${args.VALUE}\r\n`;
         this.write(cmd);
     }

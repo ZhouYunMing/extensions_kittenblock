@@ -61,7 +61,9 @@ class MicroBit {
             const lines = this.lineBuffer.split('\n');
             this.lineBuffer = lines.pop();
             for (const l of lines){
-                if (this.reporter) this.reporter(l);
+                if (l.startsWith('M') && this.reporter){
+                    this.reporter(l);
+                }
             }
         }
     }
@@ -257,7 +259,7 @@ class MicroBit {
                         },
                         PULL: {
                             type: ArgumentType.STRING,
-                            defaultValue: 'PULL_UP',
+                            defaultValue: '0',
                             menu: 'bitPull'
                         }
                     },
@@ -566,51 +568,24 @@ class MicroBit {
                             id: 'MicroBit.no_pull',
                             default: 'No Pull'
                         }),
-                        value: 0
+                        value: '0'
                     },
                     {
                         text: formatMessage({
                             id: 'MicroBit.pull_up',
                             default: 'Pull Up'
                         }),
-                        value: 1
+                        value: '3'
                     },
                     {
                         text: formatMessage({
                             id: 'MicroBit.pull_down',
                             default: 'Pull Down'
                         }),
-                        value: 2
+                        value: '1'
                     }],
                 gestureMenu: ['up', 'down', 'left', 'right', 'face up', 'face down', 'freefall', '3g', '6g', '8g', 'shake']
-            },
-            translation_map: {
-                'zh-cn': {
-                    'button': '按键 [BUTTON]',
-                    'shownum': '显示数字 [NUMBER]',
-                    'showicon': '显示图标 [ICON]',
-                    'showstring': '显示文字 [STR]',
-                    'digiwrite': '数字写 [PIN] 值 [LEVEL]',
-                    'analogwrite': '模拟写 [PIN] 值 [VALUE]',
-                    'analogread': '模拟读 [PIN]',
-                    'digiread': '数字读 [PIN]',
-                    'musicplay': '音乐播放 [MUSIC]',
-                    'musicpitch': '音调 频率[FREQ] 延时[LEN]毫秒',
-                    'speech': '说 [TXT]',
-                    'accelerometer': '陀螺仪 [DIRECTION]',
-                    'isgesture': '手势 [GESTURE]',
-                    'compass': '指南针',
-                    'radioswitch': '无线开关 [SWITCH]',
-                    'radiochannel': '无线信道 [CHANNEL]',
-                    'radiosend': '无线发送 [TEXT]',
-                    'radioreceive': '无线接收',
-                    'print': '串口打印 [TEXT]',
-                    'printvalue': '串口打印 [TEXT] = [VALUE]',
-                    'pinpull': '引脚 [PIN] [PULL]',
-                    'bitPull': {'NO_PULL': '没有上下拉', 'PULL_DOWN': '下拉', 'PULL_UP': '上拉'}
-                }
             }
-
         };
     }
 

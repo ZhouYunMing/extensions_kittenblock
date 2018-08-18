@@ -89,6 +89,22 @@ class Kittenbot {
         return Boolean(this.session);
     }
 
+    _buildMenu (ary){
+        return ary.map((entry, index) => {
+            const obj = {};
+            obj.text = entry;
+            obj.value = String(index);
+            return obj;
+        });
+    }
+
+    _buildMenuKeyMap (obj){
+        const menuAry = [];
+        for (const key in obj){
+            menuAry.push({text: String(key), value: String(obj[key])});
+        }
+        return menuAry;
+    }
 
     /**
      * @return {object} This extension's metadata.
@@ -117,7 +133,7 @@ class Kittenbot {
                         MOTOR: {
                             type: ArgumentType.STRING,
                             menu: 'motorIndex',
-                            defaultValue: 'M1A'
+                            defaultValue: '0'
                         },
                         SPEED: {
                             type: ArgumentType.SLIDER,
@@ -360,7 +376,7 @@ class Kittenbot {
                         MODE: {
                             type: ArgumentType.STRING,
                             menu: 'pinMode',
-                            defaultValue: 'OUTPUT'
+                            defaultValue: '0'
                         }
                     },
                     func: 'pinMode'
@@ -382,7 +398,7 @@ class Kittenbot {
                         VALUE: {
                             type: ArgumentType.NUMBER,
                             menu: 'level',
-                            defaultValue: 'HIGH'
+                            defaultValue: '1'
                         }
                     },
                     func: 'digitalWrite'
@@ -458,8 +474,8 @@ class Kittenbot {
                         },
                         VALUE: {
                             type: ArgumentType.STRING,
-                            menu: 'onoff',
-                            defaultValue: 'ON'
+                            menu: 'ledonoff',
+                            defaultValue: '0'
                         }
                     },
                     func: 'led',
@@ -494,7 +510,7 @@ class Kittenbot {
                     arguments: {
                         PIN: {
                             type: ArgumentType.STRING,
-                            defaultValue: '4',
+                            defaultValue: '0',
                             menu: 'extPin'
                         },
                         DEGREE: {
@@ -519,7 +535,7 @@ class Kittenbot {
                     arguments: {
                         PIN: {
                             type: ArgumentType.STRING,
-                            defaultValue: '4',
+                            defaultValue: '0',
                             menu: 'extPin'
                         },
                         DEGREE: {
@@ -614,7 +630,7 @@ class Kittenbot {
                         },
                         PIX: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 1,
+                            defaultValue: '0',
                             menu: 'rgbPix'
                         },
                         RED: {
@@ -715,7 +731,7 @@ class Kittenbot {
                     arguments: {
                         BUTTON: {
                             type: ArgumentType.STRING,
-                            defaultValue: '▲',
+                            defaultValue: '13',
                             menu: 'buttonList'
                         }
                     },
@@ -850,124 +866,54 @@ class Kittenbot {
                             menu: 'volumnList'
                         }
                     },
-                    func: 'mp3volumn',
-                    sepafter: 36
+                    func: 'mp3volumn'
                 }
             ],
 
-
-    /*const motorIndexMap = {M1A: 0, M1B: 1, M2A: 2, M2B: 3};
-    const pinModeMap = {INPUT: 0, OUTPUT: 1, INPUT_PULLUP: 2};
-    const levelMap = {HIGH: 1, LOW: 0};
-    const onoffMap = {ON: 0, OFF: 1};*/
-
             menus: {
-                pinMode: [{text: 'INPUT', value: 0}, {text: 'OUTPUT', value: 1}, {text: 'INPUT_PULLUP', value: 2}],
-                level: [{text: 'HIGH', value: 1}, {text: 'LOW', value: 0}],
-                onoff: [{text: 'ON', value: 0}, {text: 'OFF', value: 1}],
-                motorIndex: [{text: 'M1A', value: 0}, {text: 'M1B', value: 1}, {text: 'M2A', value: 2}, {text: 'M2B', value: 3}],
-                stepperIndex: ['M1', 'M2'],
-                rosbotPin: ['2', '3', '4', '7', '8', '11', '12', '13', 'A0', 'A1', 'A2', 'A3', 'A4', 'A5'],
-                extPin: ['4', '7', '8', '11', '12', '13', 'A0', 'A1', 'A2', 'A3'],
-                rgbPix: ['ALL', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15'],
+                /* from arduino.h #define INPUT 0x0 #define OUTPUT 0x1 #define INPUT_PULLUP 0x2*/
+                pinMode: [{text: 'INPUT', value: '0'}, {text: 'OUTPUT', value: '1'}, {text: 'INPUT_PULLUP', value: '2'}],
+                level: [{text: 'HIGH', value: '1'}, {text: 'LOW', value: '0'}],
+                ledonoff: [{text: 'ON', value: '0'}, {text: 'OFF', value: '1'}],
+                motorIndex: [{text: 'M1A', value: '0'}, {text: 'M1B', value: '1'}, {text: 'M2A', value: '2'}, {text: 'M2B', value: '3'}],
+                stepperIndex: [{text: 'M1', value: '1'}, {text: 'M2', value: '2'}],
+                rosbotPin: [
+                    {text: '2', value: '2'},
+                    {text: '3', value: '3'},
+                    {text: '4', value: '4'},
+                    {text: '5', value: '5'},
+                    {text: '6', value: '6'},
+                    {text: '7', value: '7'},
+                    {text: '8', value: '8'},
+                    {text: '9', value: '9'},
+                    {text: '10', value: '10'},
+                    {text: '11', value: '11'},
+                    {text: '12', value: '12'},
+                    {text: '13', value: '13'},
+                    {text: 'A0', value: 'A0'},
+                    {text: 'A1', value: 'A1'},
+                    {text: 'A2', value: 'A2'},
+                    {text: 'A3', value: 'A3'},
+                    {text: 'A4', value: 'A4'},
+                    {text: 'A5', value: 'A5'}
+                ],
+                extPin: this._buildMenu(['4', '7', '8', '11', '12', '13', 'A0', 'A1', 'A2', 'A3']),
+                rgbPix: this._buildMenu(['ALL', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15']),
                 analogPin: ['A0', 'A1', 'A2', 'A3', 'A4', 'A5'],
                 analogWritePin: ['11'],
                 sensorList: ['Light', 'Voice'],
                 colorList: ['RED', 'GREEN', 'BLUE'],
-                axisList: ['L-X', 'L-Y', 'R-X', 'R-Y'],
-                buttonList: [
-                    '→', '↑', '↓', '←', '▲', '●', '×', '■', 'L1', 'L2', 'R1', 'R2'
+                axisList: [
+                    {text: 'L-X', value: '7'},
+                    {text: 'L-Y', value: '8'},
+                    {text: 'R-X', value: '5'},
+                    {text: 'R-Y', value: '6'},
                 ],
+                buttonList: this._buildMenuKeyMap({'→': 9, '↑': 11, '↓': 12, '←': 10, '▲': 13, '●': 14,
+                    '×': 15, '■': 16, 'L2': 19, 'R2': 20, 'L1': 17, 'R1': 18}),
                 volumnList: ['UP', 'DOWN'],
                 mp3direction: ['NEXT', 'PREVIOUS']
-            },
-            translation_map: {
-                'zh-cn': {
-                    'motorspeed': '电机 [MOTOR] 运动 [SPEED]',
-                    'motordual': '双电机 M1A[SPDM1A] M1B[SPDM1B]',
-                    'motordualdelay': '双电机 M1A[SPDM1A] M1B[SPDM1B] 延时[DELAY]毫秒',
-                    'motorfour': '四电机 M1A[SPDM1A] M1B[SPDM1B] M2A[SPDM2A] M2B[SPDM2B]',
-                    'stop': '电机停止',
-                    'stepperline': '步进电机 直线 [DISTANCE]cm',
-                    'stepperturn': '步进电机 转向 [DEGREE]',
-                    'stepperarc': '步进电机 弧线 半径 [RADIUS] 角度 [DEGREE]',
-                    'steppermove': '步进电机转动 [STEPPER] 角度 [DEGREE] RPM [RPM]',
-                    'stepperppm': '步进电机 脉冲/米 [PPM]',
-                    'stepperwheelbase': '步进电机 轮距 [WHEELBASE]米',
-                    'pinmode': '引脚模式 [PIN] [MODE]',
-                    'digitalwrite': '数字写 [PIN] [VALUE]',
-                    'analogwrite': '模拟写 [PIN] [VALUE]',
-                    'digitalread': '数字读 [PIN]',
-                    'led': 'LED灯 [PIN] [VALUE]',
-                    'analogread': '模拟读 [PIN]',
-                    'button': '按键 引脚[PIN]',
-                    'servo': '舵机 引脚[PIN] 角度[DEGREE] 速度[SPEED]',
-                    'tone': '蜂鸣器 [PIN] [FREQ]hz [DURATION]毫秒',
-                    'rgb-pick': '灯环RGB 引脚[PIN] 像素[PIX] [COLOR]',
-                    'rgb': '灯环RGB 引脚[PIN] 像素[PIX] 红[RED] 绿[GREEN] 蓝[BLUE]',
-                    'rgb-brightness': '灯环RGB 亮度 [VALUE]',
-                    'rgb-off': '灯环RGB [PIN] 关闭',
-                    'distance': '超声波距离 [PIN]',
-                    'power': '电源电压',
-                    'omniwheel': 'Omni 水平[SPDX] 垂直[SPDY] 旋转[SPDR]',
-                    'temp18b20': '18B20 温度 [PIN]',
-                    'colorSensor': '颜色传感器 [COLOR]',
-                    'ps2init': 'PS2模块初始化',
-                    'ps2axis': 'PS2手柄 轴 [AXIS]',
-                    'ps2button': 'PS2手柄 按钮 [BUTTON]',
-                    'ledstring': 'LED矩阵 [STR]',
-                    'ledmatrix': 'LED矩阵 [MAT]',
-                    'ledmatrixclear': 'LED矩阵 清屏',
-                    'ledmatrixrect': 'LED矩阵 x[X] y[Y] 宽[W] 高[H] 亮[C]',
-                    'pinMode': {'INPUT': '输入', 'OUTPUT': '输出', 'INPUT_PULLUP': '上拉输入'},
-                    'mp3play': 'MP3 播放 [IO1] [IO2]',
-                    'mp3volumn': 'MP3 音量 [VOLUMN]',
-                    'mp3loop': 'MP3 [DIR]',
-                    'mp3direction': {'NEXT': '下一首', 'PREVIOUS': '上一首'}
-                },
-                'zh-tw': {
-                    'motorspeed': '馬達 [MOTOR] 速度 [SPEED]',
-                    'motordual': '移動 M1A[SPDM1A] M1B[SPDM1B]',
-                    'motordualdelay': '移動 M1A[SPDM1A] M1B[SPDM1B] 時間[DELAY]毫秒',
-                    'motorfour': '四輪驅動 M1A[SPDM1A] M1B[SPDM1B] M2A[SPDM2A] M2B[SPDM2B]',
-                    'stop': '停止移動',
-                    'stepperline': '步進電機 直行 [DISTANCE]cm',
-                    'stepperturn': '步進電機 車身轉向 [DEGREE]',
-                    'stepperarc': '步進電機 弧線移動 半徑 [RADIUS] 角度 [DEGREE]',
-                    'steppermove': '步進電機轉動 [STEPPER] 角度 [DEGREE] RPM [RPM]',
-                    'stepperppm': '步進電機 脈衝/米 [PPM]',
-                    'stepperwheelbase': '步進電機 輪距 [WHEELBASE]',
-                    'pinmode': '腳位模式 [PIN] [MODE]',
-                    'digitalwrite': '數位寫入 [PIN] [VALUE]',
-                    'analogwrite': '類比寫入 [PIN] [VALUE]',
-                    'digitalread': '數位讀取 [PIN]',
-                    'led': 'LED燈 [PIN] [VALUE]',
-                    'analogread': '類比讀取 [PIN]',
-                    'button': '按鍵 腳位[PIN]',
-                    'servo': '舵機 腳位[PIN] 角度[DEGREE] 速度[SPEED]',
-                    'tone': '蜂鳴器 [PIN] [FREQ]hz [DURATION]毫秒',
-                    'rgb-pick': '燈環RGB 腳位[PIN] 像素[PIX] [COLOR]',
-                    'rgb': '燈環RGB 腳位[PIN] 像素[PIX] 紅[RED] 綠[GREEN] 藍[BLUE]',
-                    'rgb-brightness': '燈環RGB 亮度 [VALUE]',
-                    'rgb-off': '燈環RGB 腳位[PIN] 關閉',
-                    'distance': '超音波距離 [PIN]',
-                    'power': '電源電壓',
-                    'temp18b20': '18B20 溫度 [PIN]',
-                    'colorSensor': '顏色感應器 [COLOR]',
-                    'ps2init': 'PS2模組初始化',
-                    'ps2axis': 'PS2手柄 軸 [AXIS]',
-                    'ps2button': 'PS2手柄 按鈕 [BUTTON]',
-                    'ledstring': 'LED矩陣 [STR]',
-                    'ledmatrix': 'LED矩陣 [MAT]',
-                    'ledmatrixclear': 'LED矩陣 清屏',
-                    'pinMode': {'INPUT': '輸入', 'OUTPUT': '輸出', 'INPUT_PULLUP': '上拉輸入'},
-                    'mp3play': 'MP3 播放 [IO1] [IO2]',
-                    'mp3volumn': 'MP3 音量 [VOLUMN]',
-                    'mp3loop': 'MP3 [DIR]',
-                    'mp3direction': {'NEXT': '下一首', 'PREVIOUS': '上一首'}
-                }
             }
-
         };
     };
 
@@ -979,7 +925,7 @@ class Kittenbot {
     }
 
     motorSpeed (args) {
-        const cmd = `M200 ${motorIndexMap[args.MOTOR]} ${Math.floor(args.SPEED)}\r\n`;
+        const cmd = `M200 ${args.MOTOR} ${Math.floor(args.SPEED)}\r\n`;
         this.write(cmd);
     }
 
@@ -1076,22 +1022,16 @@ class Kittenbot {
     }
 
     pinMode (args) {
-        let cmd = 'M1 ' + args.PIN + ' ' + pinModeMap[args.MODE] + '\r\n';
+        let cmd = 'M1 ' + args.PIN + ' ' + args.MODE + '\r\n';
         this.write(cmd);
     }
 
     digitalWrite (args) {
-        if (isNaN(args.VALUE)){
-            args.VALUE = levelMap[args.VALUE];
-        }
         let cmd = 'M2 ' + args.PIN + ' ' + args.VALUE + '\r\n';
         this.write(cmd);
     }
 
     led (args) {
-        if (isNaN(args.VALUE)){
-            args.VALUE = onoffMap[args.VALUE];
-        }
         let cmd = 'M2 ' + args.PIN + ' ' + args.VALUE + '\r\n';
         this.write(cmd);
     }
@@ -1123,18 +1063,12 @@ class Kittenbot {
     }
 
     servo (args) {
-        const pinIndexMap = {
-            '4': 0, '7': 1, '8': 2, '11': 3, '12': 4, '13': 5, 'A0': 6, 'A1': 7, 'A2': 8, 'A3': 9
-        };
-        let cmd = `M212 ${pinIndexMap[args.PIN]} ${Math.floor(args.DEGREE)} ${Math.floor(args.SPEED)}\r\n`;
+        let cmd = `M212 ${args.PIN} ${Math.floor(args.DEGREE)} ${Math.floor(args.SPEED)}\r\n`;
         this.write(cmd);
     }
 
     geekservo (args) {
-        const pinIndexMap = {
-            '4': 0, '7': 1, '8': 2, '11': 3, '12': 4, '13': 5, 'A0': 6, 'A1': 7, 'A2': 8, 'A3': 9
-        };
-        let cmd = `M213 ${pinIndexMap[args.PIN]} ${Math.floor(args.DEGREE)} ${Math.floor(args.SPEED)}\r\n`;
+        let cmd = `M213 ${args.PIN} ${Math.floor(args.DEGREE)} ${Math.floor(args.SPEED)}\r\n`;
         this.write(cmd);
     }
 
@@ -1202,14 +1136,12 @@ class Kittenbot {
 
     ps2axis (args) {
         const axisMap = {'L-X': 7, 'L-Y': 8, 'R-X': 5, 'R-Y': 6};
-        const cmd = `M221 ${axisMap[args.AXIS]}\r\n`;
+        const cmd = `M221 ${args.AXIS}\r\n`;
         return this.report(cmd).then(ret => this.parseCmd(ret));
     }
 
     ps2button (args) {
-        const buttonMap = {'→': 9, '↑': 11, '↓': 12, '←': 10, '▲': 13, '●': 14,
-            '×': 15, '■': 16, 'L2': 19, 'R2': 20, 'L1': 17, 'R1': 18};
-        let cmd = `M222 ${buttonMap[args.BUTTON]}\r\n`;
+        let cmd = `M222 ${args.BUTTON}\r\n`;
         return this.report(cmd).then(ret => this.parseCmd(ret));
     }
 

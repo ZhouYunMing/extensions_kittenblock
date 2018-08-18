@@ -1,6 +1,6 @@
 const ArgumentType = Scratch.ArgumentType;
 const BlockType = Scratch.BlockType;
-const formatMessage = Scratch.formatMessage;
+const formatMessage = require('format-message');
 const log = Scratch.log;
 
 const hexToRgb = hex => {
@@ -396,7 +396,7 @@ class MiniLFR {
                         BUTTON: {
                             type: ArgumentType.STRING,
                             defaultValue: '1',
-                            menu: 'buttonList'
+                            menu: 'buttons'
                         }
                     },
                     func: 'button'
@@ -598,6 +598,7 @@ class MiniLFR {
                 ],
                 rgbPix: this.buildMenu_(['ALL', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15']),
                 lfrSensor: this.buildMenu_(['0', '1', '2', '3', '4']),
+                buttons: ['1', '2'],
                 buttonList: [
                     {text: '1', value: 'E0EE0A'},
                     {text: '2', value: 'E0EE0B'}

@@ -206,11 +206,13 @@ class OttoDIY {
                     arguments: {
                         NOTE: {
                             type: ArgumentType.NUMBER,
-                            menu: 'NOTES'
+                            menu: 'NOTES',
+                            defaultValue: '262'
                         },
                         BEATS: {
                             type: ArgumentType.NUMBER,
-                            menu: 'BEATS'
+                            menu: 'BEATS',
+                            defaultValue: '500'
                         }
                     },
                     func: 'melody'
@@ -230,6 +232,7 @@ class OttoDIY {
                             defaultValue: 1
                         }
                     },
+                    blockDisabled: true,
                     func: 'noop'
                 },
                 {
@@ -251,6 +254,7 @@ class OttoDIY {
                             defaultValue: 0
                         }
                     },
+                    blockDisabled: true,
                     func: 'noop'
                 },
                 {
@@ -271,6 +275,7 @@ class OttoDIY {
                         id: 'OttoDIY.clearmouth',
                         default: 'Clear Mouth'
                     }),
+                    blockDisabled: true,
                     func: 'noop'
                 },
                 {
@@ -308,7 +313,8 @@ class OttoDIY {
                             defaultValue: 1
                         }
                     },
-                    func: 'noop'
+                    func: 'noop',
+                    blockDisabled: true
                 },
                 {
                     opcode: 'getButton',
@@ -325,7 +331,8 @@ class OttoDIY {
                             defaultValue: 1
                         }
                     },
-                    func: 'noop'
+                    func: 'noop',
+                    blockDisabled: true
                 },
             ],
             menus: {
