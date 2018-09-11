@@ -12,7 +12,6 @@ class ActuatorExtension{
         this.runtime = runtime;
         this.comm = runtime.ioDevices.comm;
         this.session = null;
-        this.runtime.registerExtensionDevice('ActuatorExtension', this);
         // session callbacks
         this.onmessage = this.onmessage.bind(this);
         this.onclose = this.onclose.bind(this);
@@ -141,6 +140,26 @@ class ActuatorExtension{
                         arduino: this.servoWriteGen
                     }
                 },
+                {
+                    opcode: 'geekservomap',
+                    blockType: BlockType.REPORTER,
+                    text: formatMessage({
+                        id: 'Actuator.geekservomap',
+                        default: 'GeekServo Map [DEG]'
+                    }),
+                    arguments: {
+                        DEG: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 90
+                        }
+                    },
+                    func: 'noop',
+                    gen: {
+                        arduino: this.geekservomap
+                    }
+                },
+
+
                 '---',
                 {
                     opcode: 'buzzer',
@@ -208,7 +227,7 @@ class ActuatorExtension{
                         },
                         ONOFF: {
                             type: ArgumentType.STRING,
-                            defaultValue: 'ON',
+                            defaultValue: 'HIGH',
                             menu: 'onoff'
                         }
                     },
@@ -288,7 +307,7 @@ class ActuatorExtension{
                 digiPin: this._buildMenuFromArray(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13',
                     'A0', 'A1', 'A2', 'A3', 'A4', 'A5']),
                 analogWritePin: this._buildMenuFromArray(['3', '5', '6', '9', '10', '11']),
-                onoff: [{text: 'ON', value: 'High'}, {text: 'OFF', value: 'Low'}],
+                onoff: [{text: 'ON', value: 'HIGH'}, {text: 'OFF', value: 'LOW'}],
                 '#actuatorCatalog': [
                     {src: 'static/extension-assets/arduino/Servo.png',
                         value: 'Servo', width: 128, height: 128, alt: 'Servo'},
@@ -320,6 +339,15 @@ class ActuatorExtension{
         const pin = gen.valueToCode(block, 'PIN');
         const deg = gen.valueToCode(block, 'DEG');
         return `servo_${pin}.write(${deg})`;
+    }
+
+    geekservomap (gen, block){
+        const deg = gen.valueToCode(block, 'DEG');
+        gen.definitions_['geekservomap'] = `int geekServoMap(int degree){
+  return (degree-90) * 20 / 3 + 1500;
+}`;
+        const code = `geekServoMap(${deg})`;
+        return [code, 0];
     }
 
     buzzerGen (gen, block){

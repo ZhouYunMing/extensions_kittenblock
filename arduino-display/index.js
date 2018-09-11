@@ -13,7 +13,6 @@ class DisplayExtension{
         this.runtime = runtime;
         this.comm = runtime.ioDevices.kblock;
         this.session = null;
-        this.runtime.registerExtensionDevice('DisplayExtension', this);
         // session callbacks
         this.onmessage = this.onmessage.bind(this);
         this.onclose = this.onclose.bind(this);
@@ -121,7 +120,7 @@ class DisplayExtension{
                         VALUE: {
                             type: ArgumentType.STRING,
                             menu: 'onoff',
-                            defaultValue: 'High'
+                            defaultValue: 'HIGH'
                         }
                     },
                     func: 'noop',
@@ -179,7 +178,7 @@ class DisplayExtension{
                     arguments: {
                         BL: {
                             type: ArgumentType.STRING,
-                            defaultValue: 'ON',
+                            defaultValue: 'HIGH',
                             menu: 'onoff'
                         }
                     },
@@ -365,7 +364,7 @@ class DisplayExtension{
             menus: {
                 digiPin: this._buildMenuFromArray(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13',
                     'A0', 'A1', 'A2', 'A3', 'A4', 'A5']),
-                onoff: [{text: 'ON', value: 'High'}, {text: 'OFF', value: 'Low'}],
+                onoff: [{text: 'ON', value: 'HIGH'}, {text: 'OFF', value: 'LOW'}],
                 analogPin: this._buildMenuFromArray(['A0', 'A1', 'A2', 'A3', 'A4', 'A5']),
                 analogWritePin: this._buildMenuFromArray(['3', '5', '6', '9', '10', '11']),
                 '#displayCatalog': [
@@ -394,11 +393,11 @@ class DisplayExtension{
     }
 
     lcdSetupGen (gen, block){
-        gen.includes_['lcd'] = '#include <LCD.h>\n' +
-            '#include <LiquidCrystal_I2C.h>\n';
+        gen.includes_['wire'] = '#include <Wire.h>\n';
+        gen.includes_['lcd'] = '#include <LiquidCrystal_I2C.h>\n';
         const addr = gen.valueToCode(block, 'ADDR');
-        gen.definitions_['lcd'] = `LiquidCrystal_I2C lcd(${addr});`;
-        return `lcd.begin(16,2)`;
+        gen.definitions_['lcd'] = `LiquidCrystal_I2C lcd(${addr}, 16, 2);`;
+        return `lcd.begin()`;
     }
 
     lcdprintGen (gen, block){
@@ -449,7 +448,8 @@ class DisplayExtension{
         gen.includes_['digitube'] = '#include <TM1637Display.h>';
         const io = gen.valueToCode(block, 'IO');
         const clk = gen.valueToCode(block, 'CLK');
-        gen.definitions_['digitube'] = `TM1637Display digiTube(${io}, ${clk});`;
+        gen.setupCodes_['digitube_bright'] = `digiTube.setBrightness(0x0f)`;
+        gen.definitions_['digitube'] = `TM1637Display digiTube(${clk}, ${io});`;
     }
 
     digitubenumberGen (gen, block){

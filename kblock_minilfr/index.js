@@ -101,7 +101,7 @@ class MiniLFR {
             }, 2000);
 
         }).catch(err => {
-            log.warn('connect peripheral fail', err);
+            this.runtime.emit(this.runtime.constructor.PERIPHERAL_ERROR);
         });
     }
 

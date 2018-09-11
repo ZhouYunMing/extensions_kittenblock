@@ -7,6 +7,12 @@ const BlockType = Scratch.BlockType;
 const formatMessage = require('format-message');
 const log = Scratch.log;
 
+
+const wireCommon = gen => {
+    gen.setupCodes_['wire'] = `Wire.begin()`;
+    gen.includes_['wire'] = '#include <Wire.h>\n';
+};
+
 class ArduinoExtension {
     constructor (runtime){
         this.runtime = runtime;
@@ -123,6 +129,41 @@ class ArduinoExtension {
                     func: 'noop'
                 },
                 {
+                    opcode: 'serialavailable',
+                    blockType: BlockType.BOOLEAN,
+                    text: formatMessage({
+                        id: 'arduino.serialavailable',
+                        default: '[SERIAL] Available'
+                    }),
+                    arguments: {
+                        SERIAL: {
+                            type: ArgumentType.STRING,
+                            menu: 'serialtype',
+                            defaultValue: 'Serial'
+                        }
+                    },
+                    func: 'noop',
+                    gen: {
+                        arduino: this.serAvailable
+                    }
+                },
+                {
+                    opcode: 'serialread',
+                    blockType: BlockType.REPORTER,
+                    text: formatMessage({
+                        id: 'arduino.serialread',
+                        default: '[SERIAL] Read'
+                    }),
+                    arguments: {
+                        SERIAL: {
+                            type: ArgumentType.STRING,
+                            menu: 'serialtype',
+                            defaultValue: 'Serial'
+                        }
+                    },
+                    func: 'noop'
+                },
+                {
                     opcode: 'serialbegin',
                     blockType: BlockType.COMMAND,
 
@@ -139,6 +180,102 @@ class ArduinoExtension {
                     func: 'noop',
                     sepafter: 36
                 },
+                {
+                    opcode: 'println',
+                    blockType: BlockType.COMMAND,
+
+                    text: formatMessage({
+                        id: 'arduino.println',
+                        default: 'Serial Print [TEXT]'
+                    }),
+                    arguments: {
+                        TEXT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'Hello World'
+                        }
+                    },
+                    func: 'noop'
+                },
+                {
+                    opcode: 'printvalue',
+                    blockType: BlockType.COMMAND,
+
+                    text: formatMessage({
+                        id: 'arduino.printvalue',
+                        default: 'Serial Print [TEXT] = [VALUE]'
+                    }),
+                    arguments: {
+                        TEXT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'Apple'
+                        },
+                        VALUE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 123
+                        }
+                    },
+                    func: 'noop'
+                },
+                {
+                    opcode: 's4xparse',
+                    blockType: BlockType.COMMAND,
+
+                    text: formatMessage({
+                        id: 'arduino.s4xparse',
+                        default: 'S4X Parse [PARAM]'
+                    }),
+                    arguments: {
+                        PARAM: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'Apple'
+                        }
+                    },
+                    func: 'noop',
+                    sepafter: 36
+                },
+                {
+                    opcode: 'softwareserial',
+                    blockType: BlockType.COMMAND,
+
+                    text: formatMessage({
+                        id: 'arduino.softwareserial',
+                        default: 'Software Serial TX[TX] RX[RX] [BAUD]'
+                    }),
+                    arguments: {
+                        TX: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '3',
+                            menu: 'digiPin'
+                        },
+                        RX: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '4',
+                            menu: 'digiPin'
+                        },
+                        BAUD: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 9600
+                        }
+                    },
+                    func: 'noop'
+                },
+                {
+                    opcode: 'softwareserialprintln',
+                    blockType: BlockType.COMMAND,
+
+                    text: formatMessage({
+                        id: 'arduino.softwareserialprintln',
+                        default: 'Software Serial Println [TEXT]'
+                    }),
+                    arguments: {
+                        TEXT: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'Hello World'
+                        }
+                    },
+                    func: 'noop'
+                },
+                '---',
                 {
                     opcode: 'pinmode',
                     blockType: BlockType.COMMAND,
@@ -304,100 +441,136 @@ class ArduinoExtension {
                     func: 'noop'
                 },
                 {
-                    opcode: 'println',
-                    blockType: BlockType.COMMAND,
+                    opcode: 'stringtypo',
+                    blockType: BlockType.REPORTER,
 
                     text: formatMessage({
-                        id: 'arduino.println',
-                        default: 'Serial Print [TEXT]'
+                        id: 'arduino.stringtypo',
+                        default: 'String[TEXT],[TYPO]'
                     }),
                     arguments: {
                         TEXT: {
                             type: ArgumentType.STRING,
-                            defaultValue: 'Hello World'
-                        }
-                    },
-                    func: 'noop'
-                },
-                {
-                    opcode: 'printvalue',
-                    blockType: BlockType.COMMAND,
-
-                    text: formatMessage({
-                        id: 'arduino.printvalue',
-                        default: 'Serial Print [TEXT] = [VALUE]'
-                    }),
-                    arguments: {
-                        TEXT: {
-                            type: ArgumentType.STRING,
-                            defaultValue: 'Apple'
+                            defaultValue: '123'
                         },
-                        VALUE: {
-                            type: ArgumentType.NUMBER,
-                            defaultValue: 123
-                        }
-                    },
-                    func: 'noop'
-                },
-                {
-                    opcode: 's4xparse',
-                    blockType: BlockType.COMMAND,
-
-                    text: formatMessage({
-                        id: 'arduino.s4xparse',
-                        default: 'S4X Parse [PARAM]'
-                    }),
-                    arguments: {
-                        PARAM: {
+                        TYPO: {
                             type: ArgumentType.STRING,
-                            defaultValue: 'Apple'
+                            defaultValue: 'HEX',
+                            menu: 'StrTypo'
                         }
                     },
                     func: 'noop',
-                    sepafter: 36
+                    gen: {
+                        arduino: this.stringtypo
+                    }
                 },
                 {
-                    opcode: 'softwareserial',
-                    blockType: BlockType.COMMAND,
+                    opcode: 'typecast',
+                    blockType: BlockType.REPORTER,
 
                     text: formatMessage({
-                        id: 'arduino.softwareserial',
-                        default: 'Software Serial TX[TX] RX[RX] [BAUD]'
+                        id: 'arduino.typecast',
+                        default: 'Cast [VALUE] to [TYPO]'
                     }),
                     arguments: {
-                        TX: {
+                        VALUE: {
                             type: ArgumentType.STRING,
-                            defaultValue: '3',
-                            menu: 'digiPin'
+                            defaultValue: '123'
                         },
-                        RX: {
+                        TYPO: {
                             type: ArgumentType.STRING,
-                            defaultValue: '4',
-                            menu: 'digiPin'
+                            defaultValue: 'char',
+                            menu: 'Typo'
+                        }
+                    },
+                    func: 'noop',
+                    gen: {
+                        arduino: this.typecast
+                    }
+                },
+                '---',
+                {
+                    opcode: 'wireBegin',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'arduino.wiretrans',
+                        default: 'Wire Begin Trans [ADDR]'
+                    }),
+                    arguments: {
+                        ADDR: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '0x12'
+                        }
+                    },
+                    func: 'noop',
+                    gen: {
+                        arduino: this.wireBegin
+                    }
+                },
+                {
+                    opcode: 'wireWrite',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'arduino.wirewrite',
+                        default: 'Wire Write [DATA]'
+                    }),
+                    arguments: {
+                        DATA: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'abc'
+                        }
+                    },
+                    func: 'noop',
+                    gen: {
+                        arduino: this.wireWrite
+                    }
+                },
+                {
+                    opcode: 'wireRead',
+                    blockType: BlockType.REPORTER,
+                    text: formatMessage({
+                        id: 'arduino.wireread',
+                        default: 'Wire Read [ADDR] Bytes [LEN]'
+                    }),
+                    arguments: {
+                        ADDR: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '0x12'
                         },
-                        BAUD: {
+                        LEN: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 9600
+                            defaultValue: 6
                         }
                     },
-                    func: 'noop'
+                    func: 'noop',
+                    gen: {
+                        arduino: this.wireRead
+                    }
                 },
                 {
-                    opcode: 'softwareserialprintln',
+                    opcode: 'wireEnd',
                     blockType: BlockType.COMMAND,
-
                     text: formatMessage({
-                        id: 'arduino.softwareserialprintln',
-                        default: 'Software Serial Println [TEXT]'
+                        id: 'arduino.wireEnd',
+                        default: 'Wire End'
                     }),
-                    arguments: {
-                        TEXT: {
-                            type: ArgumentType.STRING,
-                            defaultValue: 'Hello World'
-                        }
-                    },
-                    func: 'noop'
-                }
+                    func: 'noop',
+                    gen: {
+                        arduino: this.wireEnd
+                    }
+                },
+                {
+                    opcode: 'wireEndRet',
+                    blockType: BlockType.REPORTER,
+                    text: formatMessage({
+                        id: 'arduino.wireEnd',
+                        default: 'Wire End'
+                    }),
+                    func: 'noop',
+                    gen: {
+                        arduino: this.wireEndRet
+                    }
+                },
             ],
             menus: {
                 pinMode: [{text:'INPUT', value: '0'}, {text: 'OUTPUT', value: '1'}, {text: 'INPUT_PULLUP', value: '2'}],
@@ -407,7 +580,9 @@ class ArduinoExtension {
                     'A0', 'A1', 'A2', 'A3', 'A4', 'A5'],
                 analogPin: ['A0', 'A1', 'A2', 'A3', 'A4', 'A5'],
                 analogWritePin: ['3', '5', '6', '9', '10', '11'],
-                serialtype: [{text: 'Serial', value: 'Serial'}, {text: 'Soft Serial', value: 'softser'}]
+                serialtype: [{text: 'Serial', value: 'Serial'}, {text: 'Soft Serial', value: 'softser'}],
+                StrTypo: ['HEX', 'BIN', 'DEC'],
+                Typo: ['byte', 'char', 'int', 'long', 'word', 'float']
             },
         };
     }
@@ -472,6 +647,71 @@ class ArduinoExtension {
             return parseInt(tmp[1], 10);
         }
     }
+
+    wiretrans (gen, block){
+        let branch = gen.statementToCode(block, 'SUBSTACK');
+
+        gen.includes_['wire'] = '#include <Wire.h>\n';
+        let code = `
+while (${sertype}.available()) {
+    char c = ${sertype}.read();
+    buf[bufindex++] = c;
+    if (c == '\\n') {
+      buf[bufindex] = '\\0';
+      ${branch}
+      memset(buf, 0, 64);
+      bufindex = 0;
+    }
+    if (bufindex >= 64) {
+      bufindex = 0;
+    }
+}\n`;
+        return code;
+    }
+
+    wireBegin (gen, block){
+        wireCommon(gen);
+        const addr = gen.valueToCode(block, 'ADDR');
+        return `Wire.beginTransmission(${addr})`;
+    }
+
+    wireWrite (gen, block){
+        const data = gen.valueToCode(block, 'DATA');
+        return `Wire.write(${data})`;
+    }
+
+    wireRead (gen, block){
+        return ['Wire.read()', 0];
+    }
+
+    wireEnd (gen, block){
+        return 'Wire.endTransmission()';
+    }
+
+    wireEndRet (gen, block){
+        return ['Wire.endTransmission()', 0];
+    }
+
+    stringtypo (gen, block){
+        const text = gen.valueToCode(block, 'TEXT');
+        const typo = gen.valueToCode(block, 'TYPO');
+        const code = `String(${text}, ${typo})`
+        return [code, 0];
+    }
+
+    typecast (gen, block){
+        const value = gen.valueToCode(block, 'VALUE');
+        const typo = gen.valueToCode(block, 'TYPO');
+        const code = `${typo}(${value})`
+        return [code, 0];
+    }
+
+    serAvailable (gen, block){
+        const sertype = gen.valueToCode(block, 'SERIAL');
+        const code = `${sertype}.available()`;
+        return [code, 0];
+    }
+
 }
 
 module.exports = ArduinoExtension;

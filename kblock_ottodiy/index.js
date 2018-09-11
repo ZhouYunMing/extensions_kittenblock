@@ -218,6 +218,27 @@ class OttoDIY {
                     func: 'melody'
                 },
                 {
+                    opcode: 'stop',
+                    blockType: BlockType.COMMAND,
+
+                    text: formatMessage({
+                        id: 'OttoDIY.stop',
+                        default: 'Stop'
+                    }),
+                    func: 'stop'
+                },
+                {
+                    opcode: 'getDistance',
+                    blockType: BlockType.REPORTER,
+
+                    text: formatMessage({
+                        id: 'OttoDIY.getDistance',
+                        default: 'Get Distance'
+                    }),
+                    func: 'distance'
+                },
+                '---',
+                {
                     opcode: 'putMouth',
                     blockType: BlockType.COMMAND,
 
@@ -258,16 +279,6 @@ class OttoDIY {
                     func: 'noop'
                 },
                 {
-                    opcode: 'stop',
-                    blockType: BlockType.COMMAND,
-
-                    text: formatMessage({
-                        id: 'OttoDIY.stop',
-                        default: 'Stop'
-                    }),
-                    func: 'stop'
-                },
-                {
                     opcode: 'clearmouth',
                     blockType: BlockType.COMMAND,
 
@@ -279,16 +290,6 @@ class OttoDIY {
                     func: 'noop'
                 },
                 {
-                    opcode: 'getDistance',
-                    blockType: BlockType.REPORTER,
-
-                    text: formatMessage({
-                        id: 'OttoDIY.getDistance',
-                        default: 'Get Distance'
-                    }),
-                    func: 'distance'
-                },
-                {
                     opcode: 'getNoise',
                     blockType: BlockType.REPORTER,
 
@@ -296,7 +297,8 @@ class OttoDIY {
                         id: 'OttoDIY.getNoise',
                         default: 'Get Noise'
                     }),
-                    func: 'noise'
+                    func: 'noise',
+                    blockDisabled: true
                 },
                 {
                     opcode: 'getLight',

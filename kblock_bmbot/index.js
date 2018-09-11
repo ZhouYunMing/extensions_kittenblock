@@ -126,7 +126,7 @@ class BMBot {
                         MOTOR: {
                             type: ArgumentType.NUMBER,
                             menu: 'MOTORS',
-                            defaultValue: 1
+                            defaultValue: '1'
                         },
                         SPEED: {
                             type: ArgumentType.SLIDER,
@@ -161,7 +161,7 @@ class BMBot {
                         SERVO: {
                             type: ArgumentType.NUMBER,
                             menu: 'SERVO',
-                            defaultValue: 1
+                            defaultValue: '1'
                         },
                         DEGREE: {
                             type: ArgumentType.SLIDERSERVO,
@@ -297,13 +297,13 @@ class BMBot {
             ],
             menus: {
                 MOTORS: [
-                    {text: 'All', value: 0},
-                    {text: 'B1', value: 1},
-                    {text: 'B2', value: 2}
+                    {text: 'All', value: '0'},
+                    {text: 'B1', value: '1'},
+                    {text: 'B2', value: '2'}
                 ],
                 SERVO: [
-                    {text: 'A1', value: 0},
-                    {text: 'A2', value: 1}
+                    {text: 'A1', value: '0'},
+                    {text: 'A2', value: '1'}
                 ]
             }
         };
@@ -384,7 +384,7 @@ class BMBot {
 
     motorStopArduino (gen, block){
         bmbotCommon(gen);
-        return gen.line(`bmbot.motor(0,0);`);
+        return gen.line(`bmbot.motor(0,0)`);
     }
 
     servoArduino (gen, block){

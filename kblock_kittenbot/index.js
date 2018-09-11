@@ -21,7 +21,6 @@ class Kittenbot {
     constructor (runtime){
         this.runtime = runtime;
         this.comm = runtime.ioDevices.comm;
-        this.session = null;
         this.runtime.registerExtensionDevice('KittenBot', this);
         // session callbacks
         this.onmessage = this.onmessage.bind(this);
@@ -714,7 +713,7 @@ class Kittenbot {
                     arguments: {
                         AXIS: {
                             type: ArgumentType.STRING,
-                            defaultValue: 'L-X',
+                            defaultValue: '7',
                             menu: 'axisList'
                         }
                     },

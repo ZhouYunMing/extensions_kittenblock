@@ -4,8 +4,8 @@
 
 const ArgumentType = Scratch.ArgumentType;
 const BlockType = Scratch.BlockType;
-const formatMessage = require('format-message');
 const log = Scratch.log;
+const nets = require('nets');
 
 const tryGetLocalIp = () => {
     try {
@@ -17,6 +17,14 @@ const tryGetLocalIp = () => {
     }
 };
 
+const iotCommon = gen => {
+    gen.includes_['iot'] = '#include "KBIot.h"';
+    gen.definitions_['iot'] = 'KBIot iot(&Serial);';
+    gen.setupCodes_['_serial'] = 'Serial.begin(115200);';
+    gen.setupCodes_['iot'] = 'iot.init()';
+    gen.loopCodes_['iot'] = 'iot.loop()';
+};
+
 class IOT {
     constructor (runtime){
         this.runtime = runtime;
@@ -24,6 +32,7 @@ class IOT {
         // session callbacks
 
         this.decoder = new TextDecoder();
+        this.mqttConnServer = this.mqttConnServer.bind(this);
         this.lineBuffer = '';
     }
 
@@ -42,10 +51,7 @@ class IOT {
                     opcode: 'mqttConnect',
                     blockType: BlockType.COMMAND,
 
-                    text: formatMessage({
-                        id: 'IoT.mqttConnect',
-                        default: 'Connect MQTT [SERVER] ID[CLIENTID]'
-                    }),
+                    text: 'Connect MQTT [SERVER] ID[CLIENTID]',
                     arguments: {
                         SERVER: {
                             type: ArgumentType.STRING,
@@ -56,16 +62,16 @@ class IOT {
                             defaultValue: 'robot01'
                         }
                     },
-                    func: 'mqttConnect'
+                    func: 'mqttConnect',
+                    gen: {
+                        arduino: this.connAr
+                    }
                 },
                 {
                     opcode: 'mqttConnectCloud',
                     blockType: BlockType.COMMAND,
 
-                    text: formatMessage({
-                        id: 'IoT.mqttConnectCloud',
-                        default: 'Device Name [CLIENTID] Connect Cloud[SERVER] Access ID[USER] Pass[PASS]'
-                    }),
+                    text: 'Connect Cloud[SERVER] Access ID[USER] Pass[PASS] Device ID[CLIENTID]',
                     arguments: {
                         SERVER: {
                             type: ArgumentType.STRING,
@@ -84,9 +90,11 @@ class IOT {
                             defaultValue: ''
                         }
                     },
-                    func: 'mqttConnectCloud'
+                    func: 'mqttConnectCloud',
+                    gen: {
+                        arduino: this.connAr
+                    }
                 },
-                /*
                 {
                     opcode: 'connectAP',
                     blockType: BlockType.COMMAND,
@@ -102,17 +110,16 @@ class IOT {
                             defaultValue: '12345'
                         }
                     },
-                    func: 'noop'
+                    func: 'noop',
+                    gen: {
+                        arduino: this.connApAr
+                    }
                 },
-                */
                 {
                     opcode: 'mqttPub',
                     blockType: BlockType.COMMAND,
 
-                    text: formatMessage({
-                        id: 'IoT.mqttPub',
-                        default: 'MQTT Publish [TOPIC] [DATA]'
-                    }),
+                    text: 'MQTT Publish [TOPIC] [DATA]',
                     arguments: {
                         TOPIC: {
                             type: ArgumentType.STRING,
@@ -123,32 +130,32 @@ class IOT {
                             defaultValue: 'hello world'
                         }
                     },
-                    func: 'mqttPub'
+                    func: 'mqttPub',
+                    gen: {
+                        arduino: this.pubAr
+                    }
                 },
                 {
                     opcode: 'mqttSub',
                     blockType: BlockType.COMMAND,
 
-                    text: formatMessage({
-                        id: 'IoT.mqttSub',
-                        default: 'MQTT Subscribe [TOPIC]'
-                    }),
+                    text: 'MQTT Subscribe [TOPIC]',
                     arguments: {
                         TOPIC: {
                             type: ArgumentType.STRING,
                             defaultValue: '/hello'
                         }
                     },
-                    func: 'mqttSub'
+                    func: 'mqttSub',
+                    gen: {
+                        arduino: this.subAr
+                    }
                 },
                 {
                     opcode: 'mqttGot',
                     blockType: BlockType.HAT,
 
-                    text: formatMessage({
-                        id: 'IoT.mqttGot',
-                        default: 'MQTT Topic [TOPIC]'
-                    }),
+                    text: 'MQTT Topic [TOPIC]',
                     arguments: {
                         TOPIC: {
                             type: ArgumentType.STRING,
@@ -156,16 +163,16 @@ class IOT {
                         }
                     },
                     isEdgeActivated: false,
-                    func: 'mqttGot'
+                    func: 'mqttGot',
+                    gen: {
+                        arduino: this.mqttGotAr
+                    }
                 },
                 {
                     opcode: 'mqttData',
                     blockType: BlockType.REPORTER,
 
-                    text: formatMessage({
-                        id: 'IoT.mqttData',
-                        default: 'Topic Data [DATATYPE]'
-                    }),
+                    text: 'Topic Data [DATATYPE]',
                     arguments: {
                         DATATYPE: {
                             type: ArgumentType.STRING,
@@ -173,17 +180,17 @@ class IOT {
                             menu: 'datatype'
                         }
                     },
-                    func: 'mqttData'
+                    func: 'mqttData',
+                    gen: {
+                        arduino: this.mqttDataAr
+                    }
                 },
                 '---',
                 {
                     opcode: 'thingSpeakWriteAPI',
                     blockType: BlockType.COMMAND,
 
-                    text: formatMessage({
-                        id: 'IoT.thingSpeakWriteAPI',
-                        default: 'Thing Speak Write Key [WRITEKEY]'
-                    }),
+                    text: 'Thing Speak Write Key [WRITEKEY]',
                     arguments: {
                         WRITEKEY: {
                             type: ArgumentType.STRING
@@ -195,10 +202,7 @@ class IOT {
                     opcode: 'thingSpeakReadAPI',
                     blockType: BlockType.COMMAND,
 
-                    text: formatMessage({
-                        id: 'IoT.thingSpeakReadAPI',
-                        default: 'Thing Speak Read Key [READKEY]'
-                    }),
+                    text: 'Thing Speak Read Key [READKEY]',
                     arguments: {
                         READKEY: {
                             type: ArgumentType.STRING
@@ -210,10 +214,7 @@ class IOT {
                     opcode: 'thingSpeakUpdate',
                     blockType: BlockType.COMMAND,
 
-                    text: formatMessage({
-                        id: 'IoT.thingSpeakUpdate',
-                        default: 'Thing Speak Update Field[FIELD] [VALUE]'
-                    }),
+                    text: 'Thing Speak Update Field[FIELD] [VALUE]',
                     arguments: {
                         FIELD: {
                             type: ArgumentType.NUMBER,
@@ -230,10 +231,7 @@ class IOT {
                     opcode: 'thingSpeakRead',
                     blockType: BlockType.REPORTER,
 
-                    text: formatMessage({
-                        id: 'IoT.thingSpeakRead',
-                        default: 'Thing Speak Get Channel[CHANNEL] Field[FIELD]:[INDEX]'
-                    }),
+                    text: 'Thing Speak Get Channel[CHANNEL] Field[FIELD]:[INDEX]',
                     arguments: {
                         CHANNEL: {
                             type: ArgumentType.NUMBER
@@ -248,7 +246,7 @@ class IOT {
                         }
                     },
                     func: 'thingSpeakRead'
-                },
+                }
             ],
             menus: {
                 datatype: ['String', 'Number', 'C_Str']
@@ -256,7 +254,7 @@ class IOT {
             translation_map: {
                 'zh-cn': {
                     mqttConnect: '连接MQTT 服务器[SERVER] ID[CLIENTID]',
-                    mqttConnectCloud: '设备名 [CLIENTID] 连接云[SERVER] 访问ID[USER] 访问秘钥[PASS]',
+                    mqttConnectCloud: '连接云[SERVER] 访问ID[USER] 访问秘钥[PASS] 设备ID [CLIENTID]',
                     connectAP: '连接 路由器[AP] 密码[PASS]',
                     mqttPub: 'MQTT 广播话题[TOPIC] 消息[DATA]',
                     mqttSub: 'MQTT 订阅话题[TOPIC]',
@@ -275,26 +273,7 @@ class IOT {
     mqttConnect (args) {
         const server = args.SERVER;
         const cid = args.CLIENTID;
-        if (this.client){
-            this.client.end();
-        }
-        const mqtt = window.require('mqtt');
-        this.client = mqtt.connect(`ws://${server}:9234`, {clientId: cid});
-        this.client.on('message', (topic, message) => {
-            // message is Buffer
-            // console.log(topic, message);
-            window.vm.runtime.startHats('IoT_mqttGot', {TEXT: topic});
-            this.mqttTopicData = message.toString('utf-8');
-        });
-        this.client.on('end', () => {
-            console.log('mqtt end');
-        });
-        this.client.on('error', e => {
-            console.log('mqtt err', e);
-        });
-        this.client.on('close', e => {
-            console.log('mqtt close', e);
-        });
+        return this.mqttConnServer(`ws://${server}:9234`, cid);
     }
 
     mqttConnectCloud (args) {
@@ -302,26 +281,44 @@ class IOT {
         const cid = args.CLIENTID;
         const user = args.USER;
         const pass = args.PASS;
+        return this.mqttConnServer(`ws://${server}:9234`, cid, user, pass);
+    }
 
-        if (this.client){
-            this.client.end();
-        }
-        const mqtt = window.require('mqtt');
-        this.client = mqtt.connect(`ws://${server}:9234`, {clientId: cid, username: user, password: pass});
-        this.client.on('message', (topic, message) => {
-            // message is Buffer
-            // console.log(topic, message);
-            window.vm.runtime.startHats('IoT_mqttGot', {TEXT: topic});
-            this.mqttTopicData = message.toString('utf-8');
-        });
-        this.client.on('end', () => {
-            console.log('mqtt end');
-        });
-        this.client.on('error', e => {
-            console.log('mqtt err', e);
-        });
-        this.client.on('close', e => {
-            console.log('mqtt close', e);
+    mqttConnServer (host, cid, user, pass){
+        return new Promise((resolve, reject) => {
+            if (this.client){
+                this.client.end();
+            }
+            const mqtt = window.require('mqtt');
+            const option = {clientId: cid};
+            if (user) option.username = user;
+            if (user) option.password = pass;
+            const client = mqtt.connect(host, option);
+            client.retryCnt = 0;
+            this.client = client;
+            this.client.on('message', (topic, message) => {
+                // message is Buffer
+                // console.log(topic, message);
+                window.vm.runtime.startHats('IoT_mqttGot', {TEXT: topic});
+                this.mqttTopicData = message.toString('utf-8');
+            });
+            this.client.on('end', () => {
+                console.log('mqtt end');
+            });
+            this.client.on('error', e => {
+                console.log('mqtt err', e);
+            });
+            this.client.on('connect', connack => {
+                client.retryCnt = 0;
+                resolve();
+            });
+            this.client.on('reconnect', () => {
+                client.retryCnt++;
+                if (client.retryCnt > 5){
+                    client.end();
+                    reject('error: time out');
+                }
+            });
         });
     }
 
@@ -392,5 +389,65 @@ class IOT {
             });
         });
     }
+
+    connApAr (gen, block){
+        iotCommon(gen);
+        const ap = gen.valueToCode(block, 'AP');
+        let pass = gen.valueToCode(block, 'PASS');
+        if (gen.isNumber(pass)){
+            pass = `"${pass}"`;
+        }
+        const code = `iot.connectAP(${ap}, ${pass})`;
+        return code;
+    }
+
+    connAr (gen, block){
+        iotCommon(gen);
+        const server = gen.valueToCode(block, 'SERVER');
+        const cid = gen.valueToCode(block, 'CLIENTID');
+        const user = gen.valueToCode(block, 'USER');
+        const pass = gen.valueToCode(block, 'PASS');
+        if (user){
+            return `iot.mqttConect(${server}, ${cid}, ${user}, ${pass})`;
+        } else {
+            return `iot.mqttConect(${server}, ${cid})`;
+        }
+    }
+
+    pubAr (gen, block){
+        iotCommon(gen);
+        const topic = gen.valueToCode(block, 'TOPIC');
+        const data = gen.valueToCode(block, 'DATA');
+        return `iot.publish(${topic}, ${data})`;
+    }
+
+    subAr (gen, block){
+        iotCommon(gen);
+        const topic = gen.valueToCode(block, 'TOPIC');
+        return `iot.subscribe(${topic})`;
+    }
+
+    mqttGotAr (gen, block){
+        iotCommon(gen);
+        const topic = gen.valueToCode(block, 'TOPIC');
+        const callback_ = 'GOT' + topic.replace(/["']/g, '').replace(/\//g, '_');
+        gen.setupCodes_[callback_] = `iot.regGot(${topic}, &${callback_})`;
+        const nextBlock = block.nextConnection && block.nextConnection.targetBlock();
+        const code = gen.blockToCode(nextBlock);
+        gen.functions_[callback_] = `\nvoid ${callback_}(String topicData){\n${code}\n}\n`;
+        return '';
+    }
+
+    mqttDataAr (gen, block){
+        const datatype = gen.valueToCode(block, 'DATATYPE');
+        let code = 'topicData';
+        if (datatype === 'Number'){
+            code += '.toInt()';
+        } else if (datatype === 'C_Str'){
+            code += '.c_str()';
+        }
+        return [code, gen.ORDER_ATOMIC];
+    }
+
 }
 module.exports = IOT;

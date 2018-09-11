@@ -12,7 +12,6 @@ class SensorsExtension {
         this.runtime = runtime;
         this.comm = runtime.ioDevices.comm;
         this.session = null;
-        this.runtime.registerExtensionDevice('SensorsExtension', this);
         // session callbacks
         this.onmessage = this.onmessage.bind(this);
         this.onclose = this.onclose.bind(this);
@@ -118,7 +117,7 @@ class SensorsExtension {
                         },
                         PIN: {
                             type: ArgumentType.STRING,
-                            defaultValue: 14,
+                            defaultValue: 'A0',
                             menu: 'analogPin'
                         }
                     },
@@ -200,13 +199,32 @@ class SensorsExtension {
                     }
                 },
                 {
+                    opcode: 'ds18b20Read',
+                    blockType: BlockType.COMMAND,
+
+                    text: formatMessage({
+                        id: 'sensors.ds18b20Read',
+                        default: '18B20 Read'
+                    }),
+                    func: 'noop',
+                    gen: {
+                        arduino: this.ds18b20Read
+                    }
+                },
+                {
                     opcode: 'ds18b20',
                     blockType: BlockType.REPORTER,
 
                     text: formatMessage({
                         id: 'sensors.ds18b20',
-                        default: '18B20 Temperature'
+                        default: '18B20 Temperature [INDEX]'
                     }),
+                    arguments: {
+                        INDEX: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        }
+                    },
                     func: 'noop',
                     gen: {
                         arduino: this.ds18b20ReadGen
@@ -242,12 +260,18 @@ class SensorsExtension {
                 {
                     opcode: 'infraen',
                     blockType: BlockType.COMMAND,
-
                     text: formatMessage({
                         id: 'sensors.infraen',
-                        default: 'Infra Enable'
+                        default: 'Infra Enable Pin[RXPIN]'
                     }),
                     func: 'noop',
+                    arguments: {
+                        RXPIN: {
+                            type: ArgumentType.STRING,
+                            defaultValue: '2',
+                            menu: 'digiPin'
+                        }
+                    },
                     gen: {
                         arduino: this.infraenGen
                     }
@@ -255,7 +279,6 @@ class SensorsExtension {
                 {
                     opcode: 'infraloop',
                     blockType: BlockType.CONDITIONAL,
-
                     text: formatMessage({
                         id: 'sensors.infraloop',
                         default: 'Infra Read Loop'
@@ -268,7 +291,6 @@ class SensorsExtension {
                 {
                     opcode: 'infraresult',
                     blockType: BlockType.REPORTER,
-
                     text: formatMessage({
                         id: 'sensors.infradata',
                         default: 'Infra Result'
@@ -276,6 +298,24 @@ class SensorsExtension {
                     func: 'noop',
                     gen: {
                         arduino: this.infraresultGen
+                    }
+                },
+                {
+                    opcode: 'infrasend',
+                    blockType: BlockType.COMMAND,
+                    text: formatMessage({
+                        id: 'sensors.infrasend',
+                        default: 'Infra Send [DATA]'
+                    }),
+                    arguments: {
+                        DATA: {
+                            type: ArgumentType.STRING,
+                            defaultValue: 'abcd'
+                        }
+                    },
+                    func: 'noop',
+                    gen: {
+                        arduino: this.infrasend
                     }
                 }
             ],
@@ -339,8 +379,8 @@ class SensorsExtension {
                 analogPin: this._buildMenuFromArray(['A0', 'A1', 'A2', 'A3', 'A4', 'A5']),
                 analogWritePin: this._buildMenuFromArray(['3', '5', '6', '9', '10', '11']),
                 dht11function: [
-                    {text: 'Temperature', value: 'humidity'},
-                    {text: 'Humidity', value: 'temperature'}
+                    {text: 'Temperature', value: 'temperature'},
+                    {text: 'Humidity', value: 'humidity'}
                 ]
             }
         };
@@ -384,9 +424,13 @@ class SensorsExtension {
         return gen.line(`onewire.updatePin(${pin})`) + gen.line(`ds18b20.begin()`);
     }
 
+    ds18b20Read (gen, block){
+        return gen.line('ds18b20.requestTemperatures()');
+    }
+
     ds18b20ReadGen (gen, block){
-        // todo: support multiple 18b20 reading
-        return [`ds18b20.getTempCByIndex(0)`, gen.ORDER_ATOMIC];
+        const index = gen.valueToCode(block, 'INDEX');
+        return [`ds18b20.getTempCByIndex(${index})`, gen.ORDER_ATOMIC];
     }
 
     ultrasonicGen (gen, block){
@@ -419,16 +463,23 @@ class SensorsExtension {
     }
 
     infraenGen (gen, block){
+        const pin = gen.valueToCode(block, 'RXPIN');
+
         gen.includes_['infra'] = '#include <IRremote.h>';
-        gen.definitions_['infra'] = 'IRrecv irrecv();\n' +
+        gen.definitions_['infra'] = `IRrecv irrecv(${pin});\n` +
             'decode_results results;';
-        gen.setupCodes_['infra'] = `irrecv.enableIRIn()`;
+
+        return `irrecv.enableIRIn()`;
     }
 
     infraloopGen (gen, block){
         const branch = gen.statementToCode(block, 'SUBSTACK');
         const code = `if (irrecv.decode(&results)) {
+    if (results.value != 0xFFFFFFFF)
+    {
     ${branch}
+    }
+    irrecv.resume();
 }`;
         return code;
     }
@@ -436,6 +487,14 @@ class SensorsExtension {
 
     infraresultGen (gen, block){
         return ['results.value', gen.ORDER_ATOMIC];
+    }
+
+    infrasend (gen, block){
+        const data = gen.valueToCode(block, 'DATA');
+        gen.includes_['infra'] = '#include <IRremote.h>';
+        gen.definitions_['infratx'] = `IRsend irsend;`;
+
+        return `irsend.sendNEC(${data}, 32)`;
     }
 
 
