@@ -21,7 +21,7 @@ class RobotBit {
         this.runtime = runtime;
         this.comm = runtime.ioDevices.comm;
         this.session = null;
-        this.runtime.registerExtensionDevice('RobotBit', this);
+        this.runtime.registerPeripheralExtension('RobotBit', this);
 
         this.decoder = new TextDecoder();
         this.lineBuffer = '';
@@ -29,7 +29,7 @@ class RobotBit {
 
     write (data){
         if (!this.session){
-            this.session = this.runtime.extensionDevices.MicroBit.session;
+            this.session = this.runtime.peripheralExtensions.MicroBit.session;
         }
         if (!data.endsWith('\n')) data += '\n';
         if (this.session){
@@ -41,7 +41,7 @@ class RobotBit {
         return new Promise(resolve => {
             this.write(data);
             // user interface from microbit
-            this.runtime.extensionDevices.MicroBit.reporter = resolve;
+            this.runtime.peripheralExtensions.MicroBit.reporter = resolve;
         });
     }
 

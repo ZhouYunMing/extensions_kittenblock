@@ -12,7 +12,7 @@ class OttoDIY {
         this.runtime = runtime;
         this.comm = runtime.ioDevices.comm;
         this.session = null;
-        this.runtime.registerExtensionDevice('OttoDiy', this);
+        this.runtime.registerPeripheralExtension('OttoDiy', this);
         // session callbacks
         this.onmessage = this.onmessage.bind(this);
         this.onclose = this.onclose.bind(this);
@@ -53,13 +53,13 @@ class OttoDIY {
     }
 
     // method required by vm runtime
-    startDeviceScan (){
+    scan (){
         this.comm.getDeviceList().then(result => {
             this.runtime.emit(this.runtime.constructor.PERIPHERAL_LIST_UPDATE, result);
         });
     }
 
-    connectDevice (id){
+    connect (id){
         this.comm.connect(id).then(sess => {
             this.session = sess;
             this.session.onmessage = this.onmessage;
@@ -71,11 +71,11 @@ class OttoDIY {
         });
     }
 
-    disconnectSession (){
+    disconnect (){
         this.session.close();
     }
 
-    getPeripheralIsConnected (){
+    isConnected (){
         return Boolean(this.session);
     }
 

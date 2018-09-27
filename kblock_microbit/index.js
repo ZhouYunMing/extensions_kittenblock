@@ -32,7 +32,7 @@ class MicroBit {
         this.runtime = runtime;
         this.comm = runtime.ioDevices.comm;
         this.session = null;
-        this.runtime.registerExtensionDevice('MicroBit', this);
+        this.runtime.registerPeripheralExtension('MicroBit', this);
         // session callbacks
         this.onmessage = this.onmessage.bind(this);
         this.onclose = this.onclose.bind(this);
@@ -75,13 +75,13 @@ class MicroBit {
     }
 
     // method required by vm runtime
-    startDeviceScan (){
+    scan (){
         this.comm.getDeviceList().then(result => {
             this.runtime.emit(this.runtime.constructor.PERIPHERAL_LIST_UPDATE, result);
         });
     }
 
-    connectDevice (id){
+    connect (id){
         this.comm.connect(id).then(sess => {
             this.session = sess;
             this.session.onmessage = this.onmessage;
@@ -93,11 +93,11 @@ class MicroBit {
         });
     }
 
-    disconnectSession (){
+    disconnect (){
         this.session.close();
     }
 
-    getPeripheralIsConnected (){
+    isConnected (){
         return Boolean(this.session);
     }
 

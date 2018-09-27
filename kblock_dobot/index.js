@@ -7,7 +7,8 @@
 
 const ArgumentType = Scratch.ArgumentType;
 const BlockType = Scratch.BlockType;
-const formatMessage = require('format-message');
+// const formatMessage = require('format-message');
+const formatMessage = Scratch.formatMessage;
 const log = Scratch.log;
 
 let echoType = 0;
@@ -53,7 +54,7 @@ class DobotExtension{
         this.runtime = runtime;
         this.comm = runtime.ioDevices.comm;
         this.session = null;
-        this.runtime.registerExtensionDevice('Dobot', this);
+        this.runtime.registerPeripheralExtension('Dobot', this);
         // session callbacks
         this.onmessage = this.onmessage.bind(this);
         this.onclose = this.onclose.bind(this);
@@ -87,14 +88,17 @@ class DobotExtension{
     }
 
     // method required by vm runtime
-    startDeviceScan (){
+    scan (){
         this.comm.getDeviceList().then(result => {
             this.runtime.emit(this.runtime.constructor.PERIPHERAL_LIST_UPDATE, result);
         });
     }
 
-    connectDevice (id){
+    connect (id){
         this.comm.connect(id).then(sess => {
+            window.kblock.tx = 'hex';
+            window.kblock.rx = 'hex';
+
             this.session = sess;
             this.session.onmessage = this.onmessage;
             this.session.onclose = this.onclose;
@@ -105,11 +109,11 @@ class DobotExtension{
         });
     }
 
-    disconnectSession (){
+    disconnect (){
         this.session.close();
     }
 
-    getPeripheralIsConnected (){
+    isConnected (){
         return Boolean(this.session);
     }
 

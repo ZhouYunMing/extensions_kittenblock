@@ -28,7 +28,7 @@ const iotCommon = gen => {
 class IOT {
     constructor (runtime){
         this.runtime = runtime;
-        this.runtime.registerExtensionDevice('IOT', this);
+        this.runtime.registerPeripheralExtension('IOT', this);
         // session callbacks
 
         this.decoder = new TextDecoder();

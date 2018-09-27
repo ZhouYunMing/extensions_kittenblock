@@ -18,7 +18,7 @@ class ArduinoExtension {
         this.runtime = runtime;
         this.comm = runtime.ioDevices.comm;
         this.session = null;
-        this.runtime.registerExtensionDevice('Arduino', this);
+        this.runtime.registerPeripheralExtension('Arduino', this);
         // session callbacks
         this.onmessage = this.onmessage.bind(this);
         this.onclose = this.onclose.bind(this);
@@ -58,13 +58,13 @@ class ArduinoExtension {
     }
 
     // method required by vm runtime
-    startDeviceScan (){
+    scan (){
         this.comm.getDeviceList().then(result => {
             this.runtime.emit(this.runtime.constructor.PERIPHERAL_LIST_UPDATE, result);
         });
     }
 
-    connectDevice (id){
+    connect (id){
         this.comm.connect(id).then(sess => {
             this.session = sess;
             this.session.onmessage = this.onmessage;
@@ -76,11 +76,11 @@ class ArduinoExtension {
         });
     }
 
-    disconnectSession (){
+    disconnect (){
         this.session.close();
     }
 
-    getPeripheralIsConnected (){
+    isConnected (){
         return Boolean(this.session);
     }
 
